@@ -1,42 +1,42 @@
-use serde::{Deserialize, Serialize};
+use serde::{Serialize, Deserialize};
+
+pub type Microns = i32;
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
-pub struct Point2D {
-    pub x: f32,
-    pub y: f32,
+pub struct Point {
+    pub x: Microns,
+    pub y: Microns,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Polygon {
-    pub points: Vec<Point2D>,
+pub struct LineSegment {
+    pub from: Point,
+    pub to: Point,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
+pub struct NetId(pub String);
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Track {
-    pub width: f32,
-    pub path: Vec<Point2D>,
-    pub net: Option<String>,
+pub struct TraceSegment {
+    pub net: Option<NetId>,
+    pub width: Microns,
+    pub geometry: LineSegment,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Pad {
-    pub center: Point2D,
-    pub width: f32,
-    pub height: f32,
-    pub net: Option<String>,
+    pub center: Point,
+    pub width: Microns,
+    pub height: Microns,
+    pub net: Option<NetId>, 
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DrillHole {
-    pub center: Point2D,
-    pub diameter: f32,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub enum Primitive {
-    Track(Track),
-    Pad(Pad),
-    Polygon(Polygon),
+pub struct Via {
+    pub position: Point,
+    pub drill: Microns,
+    pub net: Option<NetId>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -51,13 +51,24 @@ pub enum LayerType {
 pub struct Layer {
     pub name: String,
     pub layer_type: LayerType,
-    pub primitives: Vec<Primitive>,
+    pub traces: Vec<TraceSegment>,
+    pub pads: Vec<Pad>,
+    pub vias: Vec<Via>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PCB {
     pub name: String,
+    pub units: Unit,
     pub layers: Vec<Layer>,
-    pub outline: Polygon,
-    pub holes: Vec<DrillHole>,
+}
+
+#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+pub enum Unit {
+    Mm,
+    Inch,
+}
+
+fn mm(v: f32) -> Microns {
+    (v * 1000.0) as i32
 }
