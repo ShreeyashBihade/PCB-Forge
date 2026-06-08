@@ -26,23 +26,43 @@ type PCB = {
 export default function PCBCanvas({ pcb }: { pcb: PCB }) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
-  const [scale, setScale] = useState(0.5);
+  const MM_TO_PX = 0.5;
+  const [scale, setScale] = useState(1);
   const [offset, setOffset] = useState({ x: 100, y: 100 });
 
-  // Convert PCB coords → screen coords
+  const isDragging = useRef(false);
+  const lastMouse = useRef({ x: 0, y: 0 });
+
   const worldToScreen = (p: Point) => ({
-    x: p.x * scale + offset.x,
-    y: p.y * scale + offset.y,
+    x: p.x * MM_TO_PX * scale + offset.x,
+    y: p.y * MM_TO_PX * scale + offset.y,
   });
 
-  const draw = (ctx: CanvasRenderingContext2D) => {
-    ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+  const drawGrid = (ctx: CanvasRenderingContext2D) => {
+    ctx.strokeStyle = "#1a1f29";
+    ctx.lineWidth = 1;
 
+    const step = 50;
+
+    for (let x = 0; x < ctx.canvas.width; x += step) {
+      ctx.beginPath();
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x, ctx.canvas.height);
+      ctx.stroke();
+    }
+
+    for (let y = 0; y < ctx.canvas.height; y += step) {
+      ctx.beginPath();
+      ctx.moveTo(0, y);
+      ctx.lineTo(ctx.canvas.width, y);
+      ctx.stroke();
+    }
+  };
+
+  const drawPCB = (ctx: CanvasRenderingContext2D) => {
     if (!pcb) return;
 
     for (const layer of pcb.layers) {
-      if (layer.layer_type !== "Copper") continue;
-
       ctx.strokeStyle = "#00ff88";
       ctx.lineWidth = 2;
 
@@ -58,19 +78,23 @@ export default function PCBCanvas({ pcb }: { pcb: PCB }) {
     }
   };
 
-  useEffect(() => {
+  const render = () => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    const render = () => draw(ctx);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+    drawGrid(ctx);
+    drawPCB(ctx);
+  };
+
+  useEffect(() => {
     render();
   }, [pcb, scale, offset]);
 
-  // Zoom
   const onWheel = (e: React.WheelEvent) => {
     e.preventDefault();
     setScale((s) => Math.max(0.1, Math.min(5, s - e.deltaY * 0.001)));
