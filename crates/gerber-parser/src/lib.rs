@@ -1,22 +1,13 @@
-use pcb_core::*;
+pub mod lexer;
+pub mod parser;
+pub mod builder;
+pub mod types;
 
-pub fn parse_gerber(_input: &str) -> PCB {
-    PCB {
-        name: "Prototype PCB".to_string(),
-        layers: vec![Layer {
-            name: "F.Cu".to_string(),
-            layer_type: LayerType::Copper,
-            primitives: vec![Primitive::Track(Track {
-                width: 0.2,
-                path: vec![
-                    Point2D { x: 0.0, y: 0.0 },
-                    Point2D { x: 10.0, y: 0.0 },
-                    Point2D { x: 10.0, y: 10.0 },
-                ],
-                net: None,
-            })],
-        }],
-        outline: Polygon { points: vec![] },
-        holes: vec![],
-    }
+use parser::parse_commands;
+use builder::build_pcb;
+
+pub fn parse_gerber(input: &str) -> pcb_core::PCB {
+    let commands = parse_commands(input);
+    let segments = parser::process_moves(commands);
+    build_pcb(segments)
 }

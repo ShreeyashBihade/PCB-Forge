@@ -16,6 +16,8 @@ M02*
 
     for layer in pcb.layers {
         println!("Layer: {}", layer.name);
-        println!("Primitives: {}", layer.primitives.len());
+        println!("Traces: {}", layer.traces.len());
+        println!("Pads: {}", layer.pads.len());
+        println!("Vias: {}", layer.vias.len());
     }
 }
