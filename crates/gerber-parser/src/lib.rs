@@ -3,7 +3,7 @@ pub mod parser;
 pub mod builder;
 pub mod types;
 
-use pcb_core::{Layer, LayerType, LineSegment, NetId, PCB, Point, TraceSegment, Unit};
+use pcb_core::{Layer, LayerType, LineSegment, NetId, PCB, Point, TraceSegment, Unit, Via};
 
 pub fn parse_gerber_to_pcb(_input: &str) -> PCB {
     PCB {
@@ -48,7 +48,25 @@ pub fn parse_gerber_to_pcb(_input: &str) -> PCB {
                         diameter: 50,
                     }
                 ],
-                vias: vec![],
+                vias: vec![
+                    Via{
+                        net:Some(NetId("GND".into())),
+
+                        position:Point{
+
+                            x:250,
+
+                            y:250
+
+                        },
+
+                    outer_diameter:30,
+
+                    drill_diameter:15
+
+                    }
+
+                ],
             }
         ],
     }

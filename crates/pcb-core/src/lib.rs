@@ -31,11 +31,12 @@ pub struct Pad {
     pub diameter: i32,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Via {
-    pub position: Point,
-    pub drill: Microns,
     pub net: Option<NetId>,
+    pub position: Point,
+    pub outer_diameter: i32,
+    pub drill_diameter: i32,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

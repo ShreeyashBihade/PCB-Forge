@@ -19,11 +19,19 @@ type Pad = {
   diameter: number;
 };
 
+type Via = {
+  net?:string,
+  position:Point,
+  outer_diameter:number,
+  drill_diameter:number
+}
+
 type Layer = {
   name: string;
   layer_type: string;
   traces: Trace[];
   pads: Pad[];
+  vias: Via[];
 };
 
 type PCB = {
@@ -250,6 +258,33 @@ export default function PCBCanvas({ pcb }: { pcb: PCB }) {
         // optional outline
         ctx.strokeStyle = "#000";
         ctx.stroke();
+      }
+
+      for(const via of layer.vias){
+        const p=worldToScreen(via.position);
+        ctx.fillStyle="#FFD700";
+
+        ctx.beginPath();
+        ctx.arc(
+        p.x,
+        p.y,
+        via.outer_diameter*0.5*scale,
+        0,
+        Math.PI*2
+        );
+
+        ctx.fill();
+        ctx.fillStyle="#111";
+        ctx.beginPath();
+        ctx.arc(
+        p.x,
+        p.y,
+        via.drill_diameter*0.5*scale,
+        0,
+        Math.PI*2
+        );
+
+        ctx.fill();
       }
     }
   };
