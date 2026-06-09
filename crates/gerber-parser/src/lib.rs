@@ -9,99 +9,99 @@ pub fn parse_gerber_to_pcb(_input: &str) -> PCB {
     PCB {
         name: "Demo".into(),
 
-        units: Unit::Mm,
+            units: Unit::Mm,
 
-        outline: Some(
+            outline: Some(
 
-            BoardOutline {
+                BoardOutline {
 
-                segments: vec![
+                    segments: vec![
 
-                    LineSegment {
+                        LineSegment {
 
-                        from: Point {
+                            from: Point {
 
-                            x: 0,
+                                x: 0,
 
-                            y: 0,
+                                y: 0,
 
-                        },
+                            },
 
-                        to: Point {
+                            to: Point {
 
-                            x: 1000,
+                                x: 1000,
 
-                            y: 0,
+                                y: 0,
 
-                        },
-
-                    },
-
-                    LineSegment {
-
-                        from: Point {
-
-                            x: 1000,
-
-                            y: 0,
+                            },
 
                         },
 
-                        to: Point {
+                        LineSegment {
 
-                            x: 1000,
+                            from: Point {
 
-                            y: 700,
+                                x: 1000,
 
-                        },
+                                y: 0,
 
-                    },
+                            },
 
-                    LineSegment {
+                            to: Point {
 
-                        from: Point {
+                                x: 1000,
 
-                            x: 1000,
+                                y: 700,
 
-                            y: 700,
-
-                        },
-
-                        to: Point {
-
-                            x: 0,
-
-                            y: 700,
+                            },
 
                         },
 
-                    },
+                        LineSegment {
 
-                    LineSegment {
+                            from: Point {
 
-                        from: Point {
+                                x: 1000,
 
-                            x: 0,
+                                y: 700,
 
-                            y: 700,
+                            },
+
+                            to: Point {
+
+                                x: 0,
+
+                                y: 700,
+
+                            },
 
                         },
 
-                        to: Point {
+                        LineSegment {
 
-                            x: 0,
+                            from: Point {
 
-                            y: 0,
+                                x: 0,
+
+                                y: 700,
+
+                            },
+
+                            to: Point {
+
+                                x: 0,
+
+                                y: 0,
+
+                            },
 
                         },
 
-                    },
+                    ],
 
-                ],
+                }
 
-            }
-
-        ),
+            ),
         layers: vec![
             Layer {
                 name: "F.Cu".to_string(),

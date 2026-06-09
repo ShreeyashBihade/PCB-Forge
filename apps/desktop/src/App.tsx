@@ -1,44 +1,101 @@
 import { useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
-import PCBCanvas from "./PCBCanvas";
+
+import "./App.css";
+
+import Sidebar from "./components/Sidebar";
+import PCBCanvas from "./Canvas/PCBCanvas";
+
+export type RenderOptions = {
+    grid: boolean;
+    outline: boolean;
+    traces: boolean;
+    pads: boolean;
+    vias: boolean;
+};
+
+export type ToolMode =
+    | "select"
+    | "pan"
+    | "measure";
 
 export default function App() {
-  const [pcb, setPcb] = useState<any>(null);
 
-  useEffect(() => {
-    invoke("load_demo_pcb").then(setPcb);
-  }, []);
+    const [pcb, setPcb] = useState<any>(null);
 
-  return (
-    <div
-      style={{
-        width: "100vw",
-        height: "100vh",
-        overflow: "hidden",
-        display: "flex",
-        flexDirection: "column",
-        background: "#0b0f14",
-      }}
-    >
-      <h1
-        style={{
-          margin: 0,
-          padding: "10px",
-          color: "white",
-          flexShrink: 0,
-        }}
-      >
-        PCB Forge Viewer
-      </h1>
+    const [tool, setTool] = useState<ToolMode>("pan");
 
-      <div
-        style={{
-          flex: 1,
-          overflow: "hidden",
-        }}
-      >
-        {pcb ? <PCBCanvas pcb={pcb} /> : "Loading..."}
-      </div>
-    </div>
-  );
+    const [renderOptions, setRenderOptions] =
+        useState<RenderOptions>({
+            grid: true,
+            outline: true,
+            traces: true,
+            pads: true,
+            vias: true,
+        });
+
+    useEffect(() => {
+
+        invoke("load_demo_pcb")
+            .then(setPcb)
+            .catch(console.error);
+
+    }, []);
+
+    const toggleOption = (
+        key: keyof RenderOptions
+    ) => {
+
+        setRenderOptions(prev => ({
+
+            ...prev,
+
+            [key]: !prev[key],
+
+        }));
+
+    };
+
+    return (
+
+        <div className="app">
+
+            <Sidebar
+
+                pcb={pcb}
+
+                tool={tool}
+
+                setTool={setTool}
+
+                renderOptions={renderOptions}
+
+                toggleOption={toggleOption}
+
+            />
+
+            <div className="viewer">
+
+                {
+
+                    pcb &&
+
+                    <PCBCanvas
+
+                        pcb={pcb}
+
+                        tool={tool}
+
+                        renderOptions={renderOptions}
+
+                    />
+
+                }
+
+            </div>
+
+        </div>
+
+    );
+
 }
