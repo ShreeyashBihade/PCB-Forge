@@ -2,7 +2,7 @@ use serde::{Serialize, Deserialize};
 
 pub type Microns = i32;
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Point {
     pub x: Microns,
     pub y: Microns,
@@ -40,6 +40,11 @@ pub struct Via {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BoardOutline{
+    pub segments:Vec<LineSegment>
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum LayerType {
     Copper,
     Silkscreen,
@@ -60,6 +65,7 @@ pub struct Layer {
 pub struct PCB {
     pub name: String,
     pub units: Unit,
+    pub outline: Option<BoardOutline>,
     pub layers: Vec<Layer>,
 }
 

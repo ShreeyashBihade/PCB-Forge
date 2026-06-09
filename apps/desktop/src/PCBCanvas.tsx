@@ -37,6 +37,14 @@ type Layer = {
 type PCB = {
   name: string;
   units: string;
+  
+  outline?:{
+    segments:{
+      from:Point;
+      to:Point;
+    } [];
+  };
+
   layers: Layer[];
 };
 
@@ -218,6 +226,64 @@ export default function PCBCanvas({ pcb }: { pcb: PCB }) {
     }
   };
 
+    const drawOutline = (
+
+      ctx: CanvasRenderingContext2D
+
+  ) => {
+
+      if (!pcb.outline)
+
+          return;
+
+      ctx.strokeStyle = "#FFD700";
+
+      ctx.lineWidth = 3 * scale;
+
+      for (
+
+          const segment
+
+          of pcb.outline.segments
+
+      ) {
+
+          const a = worldToScreen(
+
+              segment.from
+
+          );
+
+          const b = worldToScreen(
+
+              segment.to
+
+          );
+
+          ctx.beginPath();
+
+          ctx.moveTo(
+
+              a.x,
+
+              a.y
+
+          );
+
+          ctx.lineTo(
+
+              b.x,
+
+              b.y
+
+          );
+
+          ctx.stroke();
+
+      }
+
+  };
+
   // --------------------------------------------------
   // PCB DRAWING
   // --------------------------------------------------
@@ -229,7 +295,7 @@ export default function PCBCanvas({ pcb }: { pcb: PCB }) {
 
     for (const layer of pcb.layers) {
       ctx.strokeStyle = "#00ff88";
-      ctx.lineWidth = 2;
+      ctx.lineWidth = 2 * scale;
 
       for (const trace of layer.traces) {
         const a = worldToScreen(
@@ -308,6 +374,7 @@ export default function PCBCanvas({ pcb }: { pcb: PCB }) {
     );
 
     drawGrid(ctx);
+    drawOutline(ctx);
     drawPCB(ctx);
   };
 

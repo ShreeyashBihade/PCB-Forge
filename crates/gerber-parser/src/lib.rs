@@ -3,12 +3,105 @@ pub mod parser;
 pub mod builder;
 pub mod types;
 
-use pcb_core::{Layer, LayerType, LineSegment, NetId, PCB, Point, TraceSegment, Unit, Via};
+use pcb_core::{Layer, LayerType, LineSegment, NetId, PCB, Point, TraceSegment, Unit, Via, BoardOutline};
 
 pub fn parse_gerber_to_pcb(_input: &str) -> PCB {
     PCB {
-        name: "test".to_string(),
+        name: "Demo".into(),
+
         units: Unit::Mm,
+
+        outline: Some(
+
+            BoardOutline {
+
+                segments: vec![
+
+                    LineSegment {
+
+                        from: Point {
+
+                            x: 0,
+
+                            y: 0,
+
+                        },
+
+                        to: Point {
+
+                            x: 1000,
+
+                            y: 0,
+
+                        },
+
+                    },
+
+                    LineSegment {
+
+                        from: Point {
+
+                            x: 1000,
+
+                            y: 0,
+
+                        },
+
+                        to: Point {
+
+                            x: 1000,
+
+                            y: 700,
+
+                        },
+
+                    },
+
+                    LineSegment {
+
+                        from: Point {
+
+                            x: 1000,
+
+                            y: 700,
+
+                        },
+
+                        to: Point {
+
+                            x: 0,
+
+                            y: 700,
+
+                        },
+
+                    },
+
+                    LineSegment {
+
+                        from: Point {
+
+                            x: 0,
+
+                            y: 700,
+
+                        },
+
+                        to: Point {
+
+                            x: 0,
+
+                            y: 0,
+
+                        },
+
+                    },
+
+                ],
+
+            }
+
+        ),
         layers: vec![
             Layer {
                 name: "F.Cu".to_string(),
@@ -66,7 +159,7 @@ pub fn parse_gerber_to_pcb(_input: &str) -> PCB {
 
                     }
 
-                ],
+                ]
             }
         ],
     }
