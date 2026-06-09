@@ -1,9 +1,11 @@
 import { useEffect, useRef, useState } from "react";
 
-type Point = { x: number; y: number };
+type Point = {
+  x: number;
+  y: number;
+};
 
 type Trace = {
-  net?: string;
   width: number;
   geometry: {
     from: Point;
@@ -24,42 +26,190 @@ type PCB = {
 };
 
 export default function PCBCanvas({ pcb }: { pcb: PCB }) {
-  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  const MM_TO_PX = 0.5;
   const [scale, setScale] = useState(1);
-  const [offset, setOffset] = useState({ x: 100, y: 100 });
+  const [offset, setOffset] = useState({ x: 0, y: 0 });
 
-  const isDragging = useRef(false);
+  const dragging = useRef(false);
   const lastMouse = useRef({ x: 0, y: 0 });
 
-  const worldToScreen = (p: Point) => ({
-    x: p.x * MM_TO_PX * scale + offset.x,
-    y: p.y * MM_TO_PX * scale + offset.y,
+  const containerRef = useRef<HTMLDivElement | null>(null);
+
+  const [canvasSize, setCanvasSize] = useState({
+    width: 800,
+    height: 600,
   });
 
-  const drawGrid = (ctx: CanvasRenderingContext2D) => {
+  const [size, setSize] = useState({
+    width: window.innerWidth,
+    height: window.innerHeight,
+  });
+
+  useEffect(() => {
+    const resize = () => {
+      if (!containerRef.current) return;
+
+      setCanvasSize({
+        width: containerRef.current.clientWidth,
+        height: containerRef.current.clientHeight,
+      });
+    };
+
+    resize();
+
+    window.addEventListener("resize", resize);
+
+    return () => {
+      window.removeEventListener("resize", resize);
+    };
+  }, []);
+
+  // --------------------------------------------------
+  // WORLD -> SCREEN
+  // --------------------------------------------------
+
+  const worldToScreen = (p: Point) => ({
+    x: p.x * scale + offset.x,
+    y: p.y * scale + offset.y,
+  });
+
+  // --------------------------------------------------
+  // AUTO FIT CAMERA
+  // --------------------------------------------------
+
+  useEffect(() => {
+    if (!pcb) return;
+
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    let minX = Infinity;
+    let minY = Infinity;
+    let maxX = -Infinity;
+    let maxY = -Infinity;
+
+    for (const layer of pcb.layers) {
+      for (const trace of layer.traces) {
+        minX = Math.min(
+          minX,
+          trace.geometry.from.x,
+          trace.geometry.to.x
+        );
+
+        minY = Math.min(
+          minY,
+          trace.geometry.from.y,
+          trace.geometry.to.y
+        );
+
+        maxX = Math.max(
+          maxX,
+          trace.geometry.from.x,
+          trace.geometry.to.x
+        );
+
+        maxY = Math.max(
+          maxY,
+          trace.geometry.from.y,
+          trace.geometry.to.y
+        );
+      }
+    }
+
+    const pcbWidth = maxX - minX;
+    const pcbHeight = maxY - minY;
+
+    if (pcbWidth <= 0 || pcbHeight <= 0) return;
+
+    const padding = 100;
+
+    const fitScaleX =
+      (canvas.width - padding) / pcbWidth;
+
+    const fitScaleY =
+      (canvas.height - padding) / pcbHeight;
+
+    const fitScale = Math.min(
+      fitScaleX,
+      fitScaleY
+    );
+
+    const centerX = (minX + maxX) / 2;
+    const centerY = (minY + maxY) / 2;
+
+    const screenCenterX = canvas.width / 2;
+    const screenCenterY = canvas.height / 2;
+
+    setScale(fitScale);
+
+    setOffset({
+      x: screenCenterX - centerX * fitScale,
+      y: screenCenterY - centerY * fitScale,
+    });
+  }, [pcb]);
+
+  // --------------------------------------------------
+  // GRID
+  // --------------------------------------------------
+
+  const drawGrid = (
+    ctx: CanvasRenderingContext2D
+  ) => {
+    const canvas = ctx.canvas;
+
     ctx.strokeStyle = "#1a1f29";
     ctx.lineWidth = 1;
 
-    const step = 50;
+    let gridWorld = 100;
 
-    for (let x = 0; x < ctx.canvas.width; x += step) {
+    const pixelsPerGrid =
+      gridWorld * scale;
+
+    if (pixelsPerGrid < 20)
+      gridWorld *= 5;
+
+    if (pixelsPerGrid > 200)
+      gridWorld /= 5;
+
+    const step = gridWorld * scale;
+
+    const startX =
+      offset.x % step;
+
+    const startY =
+      offset.y % step;
+
+    for (
+      let x = startX;
+      x < canvas.width;
+      x += step
+    ) {
       ctx.beginPath();
       ctx.moveTo(x, 0);
-      ctx.lineTo(x, ctx.canvas.height);
+      ctx.lineTo(x, canvas.height);
       ctx.stroke();
     }
 
-    for (let y = 0; y < ctx.canvas.height; y += step) {
+    for (
+      let y = startY;
+      y < canvas.height;
+      y += step
+    ) {
       ctx.beginPath();
       ctx.moveTo(0, y);
-      ctx.lineTo(ctx.canvas.width, y);
+      ctx.lineTo(canvas.width, y);
       ctx.stroke();
     }
   };
 
-  const drawPCB = (ctx: CanvasRenderingContext2D) => {
+  // --------------------------------------------------
+  // PCB DRAWING
+  // --------------------------------------------------
+
+  const drawPCB = (
+    ctx: CanvasRenderingContext2D
+  ) => {
     if (!pcb) return;
 
     for (const layer of pcb.layers) {
@@ -67,8 +217,13 @@ export default function PCBCanvas({ pcb }: { pcb: PCB }) {
       ctx.lineWidth = 2;
 
       for (const trace of layer.traces) {
-        const a = worldToScreen(trace.geometry.from);
-        const b = worldToScreen(trace.geometry.to);
+        const a = worldToScreen(
+          trace.geometry.from
+        );
+
+        const b = worldToScreen(
+          trace.geometry.to
+        );
 
         ctx.beginPath();
         ctx.moveTo(a.x, a.y);
@@ -78,6 +233,10 @@ export default function PCBCanvas({ pcb }: { pcb: PCB }) {
     }
   };
 
+  // --------------------------------------------------
+  // RENDER
+  // --------------------------------------------------
+
   const render = () => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -85,7 +244,12 @@ export default function PCBCanvas({ pcb }: { pcb: PCB }) {
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.clearRect(
+      0,
+      0,
+      canvas.width,
+      canvas.height
+    );
 
     drawGrid(ctx);
     drawPCB(ctx);
@@ -95,18 +259,110 @@ export default function PCBCanvas({ pcb }: { pcb: PCB }) {
     render();
   }, [pcb, scale, offset]);
 
-  const onWheel = (e: React.WheelEvent) => {
+  // --------------------------------------------------
+  // PAN
+  // --------------------------------------------------
+
+  const onMouseDown = (
+    e: React.MouseEvent
+  ) => {
+    dragging.current = true;
+
+    lastMouse.current = {
+      x: e.clientX,
+      y: e.clientY,
+    };
+  };
+
+  const onMouseUp = () => {
+    dragging.current = false;
+  };
+
+  const onMouseMove = (
+    e: React.MouseEvent
+  ) => {
+    if (!dragging.current) return;
+
+    const dx =
+      e.clientX -
+      lastMouse.current.x;
+
+    const dy =
+      e.clientY -
+      lastMouse.current.y;
+
+    setOffset((o) => ({
+      x: o.x + dx,
+      y: o.y + dy,
+    }));
+
+    lastMouse.current = {
+      x: e.clientX,
+      y: e.clientY,
+    };
+  };
+
+  // --------------------------------------------------
+  // ZOOM TO CURSOR
+  // --------------------------------------------------
+
+  const onWheel = (
+    e: React.WheelEvent
+  ) => {
     e.preventDefault();
-    setScale((s) => Math.max(0.1, Math.min(5, s - e.deltaY * 0.001)));
+
+    const zoomFactor =
+      e.deltaY < 0 ? 1.1 : 0.9;
+
+    const mouseX = e.nativeEvent.offsetX;
+    const mouseY = e.nativeEvent.offsetY;
+
+    const worldX =
+      (mouseX - offset.x) / scale;
+
+    const worldY =
+      (mouseY - offset.y) / scale;
+
+    const newScale =
+      scale * zoomFactor;
+
+    setScale(newScale);
+
+    setOffset({
+      x:
+        mouseX -
+        worldX * newScale,
+      y:
+        mouseY -
+        worldY * newScale,
+    });
   };
 
   return (
-    <canvas
-      ref={canvasRef}
-      width={1000}
-      height={700}
-      onWheel={onWheel}
-      style={{ border: "1px solid #333", background: "#0b0f14" }}
-    />
+    <div
+      ref={containerRef}
+      style={{
+        width: "95%",
+        height: "95%",
+        overflow: "hidden",
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+      }}
+    >
+      <canvas
+        ref={canvasRef}
+        width={canvasSize.width - 10}
+        height={canvasSize.height - 10}
+        onWheel={onWheel}
+        onMouseDown={onMouseDown}
+        onMouseMove={onMouseMove}
+        onMouseUp={onMouseUp}
+        style={{
+          background: "#0b0f14",
+          border: "1px solid #333",
+        }}
+      />
+    </div>
   );
 }
