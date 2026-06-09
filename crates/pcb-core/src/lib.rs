@@ -26,10 +26,9 @@ pub struct TraceSegment {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Pad {
-    pub center: Point,
-    pub width: Microns,
-    pub height: Microns,
-    pub net: Option<NetId>, 
+    pub net: Option<NetId>,
+    pub position: Point,
+    pub diameter: i32,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

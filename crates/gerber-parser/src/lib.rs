@@ -31,7 +31,23 @@ pub fn parse_gerber_to_pcb(_input: &str) -> PCB {
                         },
                     }
                 ],
-                pads: vec![],
+                pads: vec![
+                    pcb_core::Pad {
+                        net: Some(NetId("GND".into())),
+                        position: Point { x: 0, y: 0 },
+                        diameter: 50,
+                    },
+                    pcb_core::Pad {
+                        net: Some(NetId("GND".into())),
+                        position: Point { x: 500, y: 500 },
+                        diameter: 50,
+                    },
+                    pcb_core::Pad {
+                        net: Some(NetId("GND".into())),
+                        position: Point { x: 1000, y: 200 },
+                        diameter: 50,
+                    }
+                ],
                 vias: vec![],
             }
         ],

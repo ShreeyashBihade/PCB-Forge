@@ -13,10 +13,17 @@ type Trace = {
   };
 };
 
+type Pad = {
+  net?: string;
+  position: { x: number; y: number };
+  diameter: number;
+};
+
 type Layer = {
   name: string;
   layer_type: string;
   traces: Trace[];
+  pads: Pad[];
 };
 
 type PCB = {
@@ -228,6 +235,20 @@ export default function PCBCanvas({ pcb }: { pcb: PCB }) {
         ctx.beginPath();
         ctx.moveTo(a.x, a.y);
         ctx.lineTo(b.x, b.y);
+        ctx.stroke();
+      }
+
+      for (const pad of layer.pads) {
+        const p = worldToScreen(pad.position);
+        const radius = pad.diameter * 0.25 * scale;
+
+        ctx.beginPath();
+        ctx.fillStyle = "#ffcc00"; // gold copper pad
+        ctx.arc(p.x, p.y, radius, 0, Math.PI * 2);
+        ctx.fill();
+
+        // optional outline
+        ctx.strokeStyle = "#000";
         ctx.stroke();
       }
     }
