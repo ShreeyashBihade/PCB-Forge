@@ -978,6 +978,28 @@ export default function PCBCanvas({
         hovered,
     ]);
 
+    useEffect(() => {
+
+    const handler = (e: KeyboardEvent) => {
+
+        if (e.key === "Escape") {
+
+            setSelected(null);
+
+        }
+
+    };
+
+    window.addEventListener("keydown", handler);
+
+    return () => {
+
+        window.removeEventListener("keydown", handler);
+
+    };
+
+}, []);
+
     //--------------------------------------------------
     // Mouse
     //--------------------------------------------------
