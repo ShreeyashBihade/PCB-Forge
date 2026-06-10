@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 
+import {pickObject, Selection} from "./SelectionManager";
+
 type Point = {
     x: number;
     y: number;
@@ -119,6 +121,54 @@ export default function PCBCanvas({
             y: 0,
 
         });
+
+    const [selected, setSelected]=useState<Selection>(null);
+
+    //--------------------------------------------------
+    // Screen to World
+    //--------------------------------------------------
+    const screenToWorld=(
+        p:Point
+
+        )=>({
+        x:(p.x-offset.x)/scale,
+        y:(p.y-offset.y)/scale,
+
+    });
+
+    //--------------------------------------------------
+    // onClick
+    //--------------------------------------------------    
+    const onClick=(
+
+        e:React.MouseEvent
+
+        )=>{
+
+        if(tool!=="select")
+
+        return;
+
+        const world=
+
+        screenToWorld({
+
+        x:e.nativeEvent.offsetX,
+
+        y:e.nativeEvent.offsetY,
+
+        });
+
+        const obj = pickObject(
+            pcb,
+            world
+        );
+
+        console.log(obj);
+
+        setSelected(obj);
+
+    };
 
     //--------------------------------------------------
     // Resize
@@ -534,43 +584,27 @@ export default function PCBCanvas({
 
     const drawPCB = (
 
-        ctx: CanvasRenderingContext2D
+    ctx: CanvasRenderingContext2D
 
-    ) => {
+) => {
 
-        if (!pcb)
+    if (!pcb)
 
-            return;
+        return;
 
-        for (
+    pcb.layers.forEach(
 
-            const layer
-
-            of pcb.layers
-
-        ) {
+        (layer, layerIndex) => {
 
             //--------------------------------
-
             // Traces
-
             //--------------------------------
 
-            if (
-
-                renderOptions.traces
-
-            ) {
+            if (renderOptions.traces) {
 
                 ctx.strokeStyle = "#00ff88";
 
-                for (
-
-                    const trace
-
-                    of layer.traces
-
-                ) {
+                layer.traces.forEach((trace) => {
 
                     const a = worldToScreen(
 
@@ -612,171 +646,193 @@ export default function PCBCanvas({
 
                     ctx.stroke();
 
-                }
+                });
 
             }
 
             //--------------------------------
-
             // Pads
-
             //--------------------------------
 
-            if (
+            if (renderOptions.pads) {
 
-                renderOptions.pads
+                layer.pads.forEach(
 
-            ) {
+                    (pad, padIndex) => {
 
-                for (
+                        const p = worldToScreen(
 
-                    const pad
+                            pad.position
 
-                    of layer.pads
+                        );
 
-                ) {
-
-                    const p = worldToScreen(
-
-                        pad.position
-
-                    );
-
-                    const r = Math.max(
-
-                        3,
-
-                        pad.diameter *
-
-                            0.5 *
-
-                            scale
-
-                    );
-
-                    ctx.beginPath();
-
-                    ctx.fillStyle = "#ffcc00";
-
-                    ctx.arc(
-
-                        p.x,
-
-                        p.y,
-
-                        r,
-
-                        0,
-
-                        Math.PI * 2
-
-                    );
-
-                    ctx.fill();
-
-                    ctx.strokeStyle = "#222";
-
-                    ctx.lineWidth = 1;
-
-                    ctx.stroke();
-
-                }
-
-            }
-
-            //--------------------------------
-
-            // Vias
-
-            //--------------------------------
-
-            if (
-
-                renderOptions.vias
-
-            ) {
-
-                for (
-
-                    const via
-
-                    of layer.vias
-
-                ) {
-
-                    const p = worldToScreen(
-
-                        via.position
-
-                    );
-
-                    ctx.fillStyle = "#FFD700";
-
-                    ctx.beginPath();
-
-                    ctx.arc(
-
-                        p.x,
-
-                        p.y,
-
-                        Math.max(
+                        const r = Math.max(
 
                             3,
 
-                            via.outer_diameter *
+                            pad.diameter *
 
                                 0.5 *
 
                                 scale
 
-                        ),
+                        );
 
-                        0,
+                        let color = "#ffcc00";
 
-                        Math.PI * 2
+                        if (
 
-                    );
+                            selected &&
 
-                    ctx.fill();
+                            selected.type === "pad" &&
 
-                    ctx.fillStyle = "#111";
+                            selected.layer === layerIndex &&
 
-                    ctx.beginPath();
+                            selected.index === padIndex
 
-                    ctx.arc(
+                        ) {
 
-                        p.x,
+                            color = "#00ffff";
 
-                        p.y,
+                        }
 
-                        Math.max(
+                        ctx.beginPath();
 
-                            1,
+                        ctx.fillStyle = color;
 
-                            via.drill_diameter *
+                        ctx.arc(
 
-                                0.5 *
+                            p.x,
 
-                                scale
+                            p.y,
 
-                        ),
+                            r,
 
-                        0,
+                            0,
 
-                        Math.PI * 2
+                            Math.PI * 2
 
-                    );
+                        );
 
-                    ctx.fill();
+                        ctx.fill();
 
-                }
+                        ctx.strokeStyle = "#222";
+
+                        ctx.lineWidth = 1;
+
+                        ctx.stroke();
+
+                    }
+
+                );
+
+            }
+
+            //--------------------------------
+            // Vias
+            //--------------------------------
+
+            if (renderOptions.vias) {
+
+                layer.vias.forEach(
+
+                    (via, viaIndex) => {
+
+                        const p = worldToScreen(
+
+                            via.position
+
+                        );
+
+                        let color = "#FFD700";
+
+                        if (
+
+                            selected &&
+
+                            selected.type === "via" &&
+
+                            selected.layer === layerIndex &&
+
+                            selected.index === viaIndex
+
+                        ) {
+
+                            color = "#00ffff";
+
+                        }
+
+                        ctx.fillStyle = color;
+
+                        ctx.beginPath();
+
+                        ctx.arc(
+
+                            p.x,
+
+                            p.y,
+
+                            Math.max(
+
+                                3,
+
+                                via.outer_diameter *
+
+                                    0.5 *
+
+                                    scale
+
+                            ),
+
+                            0,
+
+                            Math.PI * 2
+
+                        );
+
+                        ctx.fill();
+
+                        ctx.fillStyle = "#111";
+
+                        ctx.beginPath();
+
+                        ctx.arc(
+
+                            p.x,
+
+                            p.y,
+
+                            Math.max(
+
+                                1,
+
+                                via.drill_diameter *
+
+                                    0.5 *
+
+                                    scale
+
+                            ),
+
+                            0,
+
+                            Math.PI * 2
+
+                        );
+
+                        ctx.fill();
+
+                    }
+
+                );
 
             }
 
         }
 
-    };
+    );
+
+};
 
     //--------------------------------------------------
     // Render
@@ -840,6 +896,7 @@ export default function PCBCanvas({
 
         renderOptions,
 
+        selected,
     ]);
 
     //--------------------------------------------------
@@ -1041,6 +1098,8 @@ export default function PCBCanvas({
                 onMouseMove={onMouseMove}
 
                 onMouseUp={onMouseUp}
+
+                onClick={onClick}
 
                 style={{
 
