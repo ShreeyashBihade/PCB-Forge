@@ -130,6 +130,11 @@ export default function PCBCanvas({
 
         });
 
+    const [
+        hovered,
+        setHovered
+    ]=useState<any>(null);
+
     //--------------------------------------------------
     // Screen to World
     //--------------------------------------------------
@@ -592,25 +597,59 @@ export default function PCBCanvas({
 
     ctx: CanvasRenderingContext2D
 
-) => {
+    ) => {
 
-    if (!pcb)
+        if (!pcb)
 
-        return;
+            return;
 
-    pcb.layers.forEach(
+        pcb.layers.forEach(
 
-        (layer, layerIndex) => {
+            (layer, layerIndex) => {
 
-            //--------------------------------
-            // Traces
-            //--------------------------------
+                //--------------------------------
+                // Traces
+                //--------------------------------
 
-            if (renderOptions.traces) {
+                if (renderOptions.traces) {
 
-                ctx.strokeStyle = "#00ff88";
+                layer.traces.forEach((trace, traceIndex) => {
 
-                layer.traces.forEach((trace) => {
+                    let color = "#00ff88";
+
+                    if (
+
+                        hovered &&
+
+                        hovered.type === "trace" &&
+
+                        hovered.layer === layerIndex &&
+
+                        hovered.index === traceIndex
+
+                    ) {
+
+                        color = "#00FF00";
+
+                    }
+
+                    if (
+
+                        selected &&
+
+                        selected.type === "trace" &&
+
+                        selected.layer === layerIndex &&
+
+                        selected.index === traceIndex
+
+                    ) {
+
+                        color = "#00FFFF";
+
+                    }
+
+                    ctx.strokeStyle = color;
 
                     const a = worldToScreen(
 
@@ -684,21 +723,37 @@ export default function PCBCanvas({
 
                         );
 
-                        let color = "#ffcc00";
+                        let color="#ffcc00";
 
-                        if (
+                        if(
 
-                            selected &&
+                        hovered &&
 
-                            selected.type === "pad" &&
+                        hovered.type==="pad" &&
 
-                            selected.layer === layerIndex &&
+                        hovered.layer===layerIndex &&
 
-                            selected.index === padIndex
+                        hovered.index===padIndex
 
-                        ) {
+                        ){
 
-                            color = "#00ffff";
+                            color="#00FF00";
+
+                        }
+
+                        if(
+
+                        selected &&
+
+                        selected.type==="pad" &&
+
+                        selected.layer===layerIndex &&
+
+                        selected.index===padIndex
+
+                        ){
+
+                            color="#00FFFF";
 
                         }
 
@@ -750,21 +805,37 @@ export default function PCBCanvas({
 
                         );
 
-                        let color = "#FFD700";
+                        let color="#FFD700";
 
-                        if (
+                        if(
 
-                            selected &&
+                        hovered &&
 
-                            selected.type === "via" &&
+                        hovered.type==="via" &&
 
-                            selected.layer === layerIndex &&
+                        hovered.layer===layerIndex &&
 
-                            selected.index === viaIndex
+                        hovered.index===viaIndex
 
-                        ) {
+                        ){
 
-                            color = "#00ffff";
+                            color="#00FF00";
+
+                        }
+
+                        if(
+
+                        selected &&
+
+                        selected.type==="via" &&
+
+                        selected.layer===layerIndex &&
+
+                        selected.index===viaIndex
+
+                        ){
+
+                            color="#00FFFF";
 
                         }
 
@@ -903,6 +974,8 @@ export default function PCBCanvas({
         renderOptions,
 
         selected,
+
+        hovered,
     ]);
 
     //--------------------------------------------------
@@ -946,6 +1019,26 @@ export default function PCBCanvas({
         e: React.MouseEvent
 
     ) => {
+
+        const world = screenToWorld({
+
+            x:e.nativeEvent.offsetX,
+
+            y:e.nativeEvent.offsetY,
+
+        });
+
+        setHovered(
+
+            pickObject(
+
+                pcb,
+
+                world
+
+            )
+
+        );
 
         if (
 
@@ -1106,6 +1199,8 @@ export default function PCBCanvas({
                 onMouseUp={onMouseUp}
 
                 onClick={onClick}
+
+                onMouseLeave={()=>setHovered(null)}
 
                 style={{
 

@@ -28,6 +28,12 @@ export type Selection =
 
     }
 
+    |{
+        type:"trace";
+        layer:number;
+        index:number;
+    }
+
     |null;
 
 export function distance(
@@ -43,6 +49,74 @@ export function distance(
         (a.x-b.x)**2+
 
         (a.y-b.y)**2
+
+    );
+
+}
+
+export function pointToSegmentDistance(
+
+    p:Point,
+
+    a:Point,
+
+    b:Point
+
+){
+
+    const dx=b.x-a.x;
+
+    const dy=b.y-a.y;
+
+    const len2=dx*dx+dy*dy;
+
+    if(len2===0)
+
+        return distance(
+
+            p,
+
+            a
+
+        );
+
+    let t=
+
+        (
+
+            (p.x-a.x)*dx+
+
+            (p.y-a.y)*dy
+
+        )/len2;
+
+    t=Math.max(
+
+        0,
+
+        Math.min(
+
+            1,
+
+            t
+
+        )
+
+    );
+
+    const proj={
+
+        x:a.x+t*dx,
+
+        y:a.y+t*dy,
+
+    };
+
+    return distance(
+
+        p,
+
+        proj
 
     );
 
@@ -165,6 +239,52 @@ export function pickObject(
                 }
 
             );
+
+            layer.traces.forEach(
+
+            (
+
+            trace:any,
+
+            traceIndex:number
+
+            )=>{
+
+            const d=
+
+            pointToSegmentDistance(
+
+            world,
+
+            trace.geometry.from,
+
+            trace.geometry.to
+
+            );
+
+            if(
+
+            d<20 &&
+
+            d<bestDist
+
+            ){
+
+            bestDist=d;
+
+            best={
+
+            type:"trace",
+
+            layer:layerIndex,
+
+            index:traceIndex,
+
+            };
+
+            }
+
+            });
 
         }
 
