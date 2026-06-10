@@ -147,6 +147,29 @@ export default function PCBCanvas({
 
     });
 
+    // Crosshair
+    const [
+
+        mousePosition,
+
+        setMousePosition
+
+        ]=useState({
+
+        x:0,
+
+        y:0,
+
+    });
+
+    const [
+
+        mouseInside,
+
+        setMouseInside
+
+    ]=useState(false);
+
     //--------------------------------------------------
     // onClick
     //--------------------------------------------------    
@@ -409,6 +432,71 @@ export default function PCBCanvas({
         });
 
     }, [pcb]);
+
+    // Draw Crosshair
+    const drawCrosshair=(
+
+    ctx:CanvasRenderingContext2D
+
+    )=>{
+
+    if(!mouseInside)
+
+    return;
+
+    ctx.strokeStyle="#4aa3ff";
+
+    ctx.lineWidth=1;
+
+    ctx.setLineDash([5,5]);
+
+    // Horizontal
+
+    ctx.beginPath();
+
+    ctx.moveTo(
+
+    0,
+
+    mousePosition.y
+
+    );
+
+    ctx.lineTo(
+
+    ctx.canvas.width,
+
+    mousePosition.y
+
+    );
+
+    ctx.stroke();
+
+    // Vertical
+
+    ctx.beginPath();
+
+    ctx.moveTo(
+
+    mousePosition.x,
+
+    0
+
+    );
+
+    ctx.lineTo(
+
+    mousePosition.x,
+
+    ctx.canvas.height
+
+    );
+
+    ctx.stroke();
+
+    ctx.setLineDash([]);
+
+    };
 
     //--------------------------------------------------
     // Infinite Grid
@@ -951,12 +1039,13 @@ export default function PCBCanvas({
 
         )
 
-            drawGrid(ctx);
+        drawGrid(ctx);
 
         drawOutline(ctx);
 
         drawPCB(ctx);
 
+        drawCrosshair(ctx);
     };
 
     useEffect(() => {
@@ -976,6 +1065,8 @@ export default function PCBCanvas({
         selected,
 
         hovered,
+
+        mousePosition,
     ]);
 
     useEffect(() => {
@@ -1043,6 +1134,14 @@ export default function PCBCanvas({
     ) => {
 
         const world = screenToWorld({
+
+            x:e.nativeEvent.offsetX,
+
+            y:e.nativeEvent.offsetY,
+
+        });
+
+        setMousePosition({
 
             x:e.nativeEvent.offsetX,
 
@@ -1222,7 +1321,21 @@ export default function PCBCanvas({
 
                 onClick={onClick}
 
-                onMouseLeave={()=>setHovered(null)}
+                onMouseLeave={()=>{
+
+                setMouseInside(false);
+
+                setHovered(null);
+
+                setHovered(null)
+
+                }}
+
+                onMouseEnter={()=>
+
+                setMouseInside(true)
+
+                }
 
                 style={{
 
