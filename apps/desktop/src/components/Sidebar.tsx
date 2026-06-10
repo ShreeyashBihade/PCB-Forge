@@ -1,6 +1,7 @@
 import LayerTree from "./LayerTree";
 import Toolbar from "./Toolbar";
 import Statusbar from "./Statusbar";
+import PropertiesPanel from "./PropertiesPanel";
 
 type RenderOptions = {
     grid: boolean;
@@ -29,6 +30,8 @@ interface SidebarProps {
         key: keyof RenderOptions
     ) => void;
 
+    selected: any;
+
 }
 
 export default function Sidebar({
@@ -42,6 +45,8 @@ export default function Sidebar({
     renderOptions,
 
     toggleOption,
+
+    selected,
 
 }: SidebarProps) {
 
@@ -107,6 +112,14 @@ export default function Sidebar({
                 style={{
                     flex: 1,
                 }}
+            />
+
+            <PropertiesPanel
+
+            selected={selected}
+
+            pcb={pcb}
+
             />
 
             <Statusbar pcb={pcb} />

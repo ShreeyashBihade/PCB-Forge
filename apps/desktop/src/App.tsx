@@ -25,6 +25,8 @@ export default function App() {
 
     const [tool, setTool] = useState<ToolMode>("pan");
 
+    const [selected, setSelected] = useState<any>(null);
+
     const [renderOptions, setRenderOptions] =
         useState<RenderOptions>({
             grid: true,
@@ -72,6 +74,8 @@ export default function App() {
 
                 toggleOption={toggleOption}
 
+                selected={selected}
+
             />
 
             <div className="viewer">
@@ -88,6 +92,9 @@ export default function App() {
 
                         renderOptions={renderOptions}
 
+                        selected={selected}
+
+                        setSelected={setSelected}
                     />
 
                 }

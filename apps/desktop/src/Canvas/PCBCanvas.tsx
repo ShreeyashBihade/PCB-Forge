@@ -71,6 +71,10 @@ interface Props {
 
     tool: ToolMode;
 
+    selected: any;
+
+    setSelected: any;
+
 }
 
 export default function PCBCanvas({
@@ -80,6 +84,10 @@ export default function PCBCanvas({
     renderOptions,
 
     tool,
+
+    selected,
+
+    setSelected,
 
 }: Props) {
 
@@ -121,8 +129,6 @@ export default function PCBCanvas({
             y: 0,
 
         });
-
-    const [selected, setSelected]=useState<Selection>(null);
 
     //--------------------------------------------------
     // Screen to World
