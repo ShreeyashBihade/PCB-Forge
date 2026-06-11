@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 
-import {pickObject, Selection} from "./SelectionManager";
+import {pickObject} from "./SelectionManager";
 
 type Point = {
     x: number;
@@ -135,6 +135,22 @@ export default function PCBCanvas({
         setHovered
     ]=useState<any>(null);
 
+    const [
+
+    measureStart,
+
+    setMeasureStart
+
+    ]=useState<Point|null>(null);
+
+    const [
+
+    measureEnd,
+
+    setMeasureEnd
+
+    ]=useState<Point|null>(null);
+
     //--------------------------------------------------
     // Screen to World
     //--------------------------------------------------
@@ -181,7 +197,31 @@ export default function PCBCanvas({
 
         if(tool!=="select")
 
-        return;
+            if(tool==="measure"){
+
+                const world=screenToWorld({
+
+                    x:e.nativeEvent.offsetX,
+
+                    y:e.nativeEvent.offsetY,
+
+                });
+
+                if(measureStart===null){
+
+                    setMeasureStart(world);
+
+                    setMeasureEnd(null);
+
+                }
+
+                else{
+
+                    setMeasureEnd(world);
+
+                }
+
+            }
 
         const world=
 
@@ -999,6 +1039,162 @@ export default function PCBCanvas({
 
 };
 
+function distance(
+
+    a: Point,
+
+    b: Point
+
+): number {
+
+    return Math.sqrt(
+
+        (a.x - b.x) ** 2 +
+
+        (a.y - b.y) ** 2
+
+    );
+
+}
+
+const drawMeasurement=(
+
+ctx:CanvasRenderingContext2D
+
+)=>{
+
+if(
+
+measureStart===null
+
+)
+
+return;
+
+const a=
+
+worldToScreen(
+
+measureStart
+
+);
+
+ctx.fillStyle="#00FFFF";
+
+ctx.beginPath();
+
+ctx.arc(
+
+a.x,
+
+a.y,
+
+5,
+
+0,
+
+Math.PI*2
+
+);
+
+ctx.fill();
+
+if(
+
+measureEnd===null
+
+)
+
+return;
+
+const b=
+
+worldToScreen(
+
+measureEnd
+
+);
+
+ctx.strokeStyle="#00FFFF";
+
+ctx.lineWidth=2;
+
+ctx.beginPath();
+
+ctx.moveTo(
+
+a.x,
+
+a.y
+
+);
+
+ctx.lineTo(
+
+b.x,
+
+b.y
+
+);
+
+ctx.stroke();
+
+ctx.beginPath();
+
+ctx.arc(
+
+b.x,
+
+b.y,
+
+5,
+
+0,
+
+Math.PI*2
+
+);
+
+ctx.fill();
+
+const d=
+
+distance(
+
+measureStart,
+
+measureEnd
+
+);
+
+ctx.fillStyle="white";
+
+ctx.font="16px sans-serif";
+
+ctx.fillText(
+
+`${d.toFixed(2)} mm`,
+
+(a.x+b.x)/2+10,
+
+(a.y+b.y)/2-10
+
+);
+
+};
+
+useEffect(()=>{
+
+if(tool!=="measure"){
+
+setMeasureStart(null);
+
+setMeasureEnd(null);
+
+}
+
+},[tool]);
+
     //--------------------------------------------------
     // Render
     //--------------------------------------------------
@@ -1045,6 +1241,8 @@ export default function PCBCanvas({
 
         drawPCB(ctx);
 
+        drawMeasurement(ctx);
+
         drawCrosshair(ctx);
     };
 
@@ -1067,6 +1265,10 @@ export default function PCBCanvas({
         hovered,
 
         mousePosition,
+        
+        measureStart,
+
+        measureEnd,
     ]);
 
     useEffect(() => {
