@@ -5,6 +5,7 @@ import "./App.css";
 
 import Sidebar from "./components/Sidebar";
 import PCBCanvas from "./Canvas/PCBCanvas";
+import Statusbar from "./components/Statusbar";
 
 export type RenderOptions = {
     grid: boolean;
@@ -58,6 +59,20 @@ export default function App() {
 
     };
 
+    const [
+
+    mouseWorld,
+
+    setMouseWorld
+
+    ]=useState({
+
+    x:0,
+
+    y:0,
+
+    });
+
     return (
 
         <div className="app">
@@ -95,6 +110,7 @@ export default function App() {
                         selected={selected}
 
                         setSelected={setSelected}
+
                     />
 
                 }
