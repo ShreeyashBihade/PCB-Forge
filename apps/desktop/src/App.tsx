@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { invoke } from "@tauri-apps/api/core";
 
 import "./App.css";
@@ -27,6 +27,18 @@ export default function App() {
     const [tool, setTool] = useState<ToolMode>("pan");
 
     const [selected, setSelected] = useState<any>(null);
+
+    const [
+
+    selectedFile,
+
+    setSelectedFile
+
+    ] = useState<File | null>(null);
+
+    const fileInputRef =
+
+    useRef<HTMLInputElement>(null);
 
     const [renderOptions, setRenderOptions] =
         useState<RenderOptions>({
@@ -59,19 +71,11 @@ export default function App() {
 
     };
 
-    const [
+    const openPCB = () => {
 
-    mouseWorld,
+        fileInputRef.current?.click();
 
-    setMouseWorld
-
-    ]=useState({
-
-    x:0,
-
-    y:0,
-
-    });
+    };
 
     return (
 
@@ -93,7 +97,38 @@ export default function App() {
 
             />
 
-            <div className="viewer">
+            <div
+                className="viewer"
+                style={{
+                    position: "relative",
+                }}
+            >
+
+                <button
+
+                    onClick={openPCB}
+
+                    style={{
+
+                        position: "absolute",
+
+                        top: 15,
+
+                        right: 15,
+
+                        zIndex: 100,
+
+                        padding: "8px 14px",
+
+                        cursor: "pointer",
+
+                    }}
+
+                >
+
+                    📂 Open PCB
+
+                </button>
 
                 {
 
@@ -115,7 +150,85 @@ export default function App() {
 
                 }
 
+                <div
+
+                    style={{
+
+                        position: "absolute",
+
+                        bottom: 15,
+
+                        right: 15,
+
+                        background: "#1b1b1b",
+
+                        color: "#00ff88",
+
+                        padding: "8px 12px",
+
+                        borderRadius: "6px",
+
+                        maxWidth: "350px",
+
+                        overflow: "hidden",
+
+                        textOverflow: "ellipsis",
+
+                        whiteSpace: "nowrap",
+
+                        fontSize: "13px",
+
+                    }}
+
+                >
+
+                    📦 {
+
+                        selectedFile
+
+                        ?
+
+                        selectedFile.name
+
+                        :
+
+                        "No PCB Package"
+
+                    }
+
+                </div>
+
             </div>
+
+            <input
+
+            ref={fileInputRef}
+
+            type="file"
+
+            accept=".zip"
+
+            style={{
+
+                display: "none",
+
+            }}
+
+            onChange={(e) => {
+
+                const file =
+
+                    e.target.files?.[0];
+
+                if (file) {
+
+                    setSelectedFile(file);
+
+                }
+
+            }}
+
+            />
 
         </div>
 
