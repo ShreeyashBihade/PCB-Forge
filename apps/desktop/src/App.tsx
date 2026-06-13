@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import { invoke } from "@tauri-apps/api/core";
+import { open } from "@tauri-apps/plugin-dialog";
 
 import "./App.css";
 
@@ -34,11 +35,15 @@ export default function App() {
 
     setSelectedFile
 
-    ] = useState<File | null>(null);
+    ]=useState<string | null>(null);
 
-    const fileInputRef =
+    const [
 
-    useRef<HTMLInputElement>(null);
+    zipFiles,
+
+    setZipFiles
+
+    ]=useState<string[]>([]);
 
     const [renderOptions, setRenderOptions] =
         useState<RenderOptions>({
@@ -71,167 +76,216 @@ export default function App() {
 
     };
 
-    const openPCB = () => {
+    const openPCB = async () => {
+        console.log("openPCB() entered");
 
-        fileInputRef.current?.click();
+        const path = await open({
+
+            multiple: false,
+
+            directory: false,
+
+            filters: [
+
+                {
+
+                    name: "PCB Package",
+
+                    extensions: [
+
+                        "zip",
+
+                    ],
+
+                },
+
+            ],
+
+        });
+
+        if (
+
+            path === null
+
+        )
+
+            return;
+
+        if (
+
+            Array.isArray(path)
+
+        )
+
+            return;
+
+        setSelectedFile(path);
+
+        try{
+
+            const files=
+
+            await invoke<string[]>(
+
+                "list_zip_files",
+
+                {
+
+                    path,
+
+                }
+
+            );
+
+            console.log(files);
+
+            setZipFiles(
+
+                files
+
+            );
+
+        }
+
+        catch(err){
+
+            console.error(err);
+
+        }
 
     };
 
     return (
-
         <div className="app">
 
             <Sidebar
-
                 pcb={pcb}
-
                 tool={tool}
-
                 setTool={setTool}
-
                 renderOptions={renderOptions}
-
                 toggleOption={toggleOption}
-
                 selected={selected}
-
             />
 
             <div
                 className="viewer"
                 style={{
                     position: "relative",
+                    flex: 1,
+                    overflow: "hidden",
                 }}
             >
 
                 <button
-
-                    onClick={openPCB}
-
+                    onClick={() => {
+                        console.log("BUTTON CLICKED");
+                        openPCB();
+                    }}
                     style={{
-
                         position: "absolute",
+                        top: 16,
+                        right: 16,
+                        zIndex: 1000,
 
-                        top: 15,
+                        padding: "10px 16px",
 
-                        right: 15,
+                        background: "#1e88e5",
+                        color: "white",
 
-                        zIndex: 100,
+                        border: "none",
+                        borderRadius: "8px",
 
-                        padding: "8px 14px",
-
+                        fontWeight: 600,
                         cursor: "pointer",
 
+                        boxShadow: "0 2px 8px rgba(0,0,0,0.35)",
                     }}
-
                 >
-
                     📂 Open PCB
-
                 </button>
 
-                {
-
-                    pcb &&
-
+                {pcb && (
                     <PCBCanvas
-
                         pcb={pcb}
-
                         tool={tool}
-
                         renderOptions={renderOptions}
-
                         selected={selected}
-
                         setSelected={setSelected}
-
                     />
-
-                }
+                )}
 
                 <div
-
                     style={{
-
                         position: "absolute",
+                        bottom: 16,
+                        right: 16,
 
-                        bottom: 15,
+                        zIndex: 1000,
 
-                        right: 15,
-
-                        background: "#1b1b1b",
-
+                        background: "rgba(25,25,25,0.9)",
                         color: "#00ff88",
 
                         padding: "8px 12px",
 
-                        borderRadius: "6px",
-
-                        maxWidth: "350px",
-
-                        overflow: "hidden",
-
-                        textOverflow: "ellipsis",
-
-                        whiteSpace: "nowrap",
+                        borderRadius: "8px",
 
                         fontSize: "13px",
 
+                        maxWidth: "320px",
+
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+
+                        boxShadow: "0 2px 8px rgba(0,0,0,0.35)",
                     }}
-
                 >
+                    📦{" "}
+                    {selectedFile
+                        ? selectedFile.split("\\").pop()
+                        : "No PCB Package"}
+                </div>
 
-                    📦 {
+                <div
+                    style={{
+                        position: "absolute",
 
-                        selectedFile
+                        left: 16,
+                        bottom: 16,
 
-                        ?
+                        zIndex: 1000,
 
-                        selectedFile.name
+                        background: "rgba(20,20,20,0.92)",
+                        color: "#00ff88",
 
-                        :
+                        padding: "10px",
 
-                        "No PCB Package"
+                        borderRadius: "8px",
 
-                    }
+                        width: "260px",
+                        maxHeight: "180px",
 
+                        overflowY: "auto",
+
+                        fontSize: "13px",
+
+                        boxShadow: "0 2px 8px rgba(0,0,0,0.35)",
+                    }}
+                >
+                    <b>Files Found</b>
+
+                    <div style={{ marginTop: "8px" }}>
+                        {zipFiles.map((file) => (
+                            <div key={file}>
+                                ✔ {file}
+                            </div>
+                        ))}
+                    </div>
                 </div>
 
             </div>
 
-            <input
-
-            ref={fileInputRef}
-
-            type="file"
-
-            accept=".zip"
-
-            style={{
-
-                display: "none",
-
-            }}
-
-            onChange={(e) => {
-
-                const file =
-
-                    e.target.files?.[0];
-
-                if (file) {
-
-                    setSelectedFile(file);
-
-                }
-
-            }}
-
-            />
-
         </div>
-
     );
 
 }
