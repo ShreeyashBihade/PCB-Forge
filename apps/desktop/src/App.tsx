@@ -2,6 +2,11 @@ import { useEffect, useState, useRef } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { open } from "@tauri-apps/plugin-dialog";
 
+import {
+    detectLayers,
+    BoardManifest,
+} from "./Import/LayerDetector";
+
 import "./App.css";
 
 import Sidebar from "./components/Sidebar";
@@ -44,6 +49,14 @@ export default function App() {
     setZipFiles
 
     ]=useState<string[]>([]);
+
+    const [
+
+    manifest,
+
+    setManifest
+
+    ]=useState<BoardManifest>({});
 
     const [renderOptions, setRenderOptions] =
         useState<RenderOptions>({
@@ -142,6 +155,18 @@ export default function App() {
             setZipFiles(
 
                 files
+
+            );
+
+            setZipFiles(files);
+
+            setManifest(
+
+                detectLayers(
+
+                    files
+
+                )
 
             );
 
@@ -272,14 +297,124 @@ export default function App() {
                         boxShadow: "0 2px 8px rgba(0,0,0,0.35)",
                     }}
                 >
-                    <b>Files Found</b>
+                    <b>
 
-                    <div style={{ marginTop: "8px" }}>
-                        {zipFiles.map((file) => (
-                            <div key={file}>
-                                ✔ {file}
-                            </div>
-                        ))}
+                    Detected Layers
+
+                    </b>
+
+                    <div style={{marginTop:"8px"}}>
+
+                    <div>
+
+                    🟢 Top Copper
+
+                    <br/>
+
+                    &nbsp;&nbsp;
+
+                    {manifest.topCopper ?? "-"}
+
+                    </div>
+
+                    <br/>
+
+                    <div>
+
+                    🟢 Bottom Copper
+
+                    <br/>
+
+                    &nbsp;&nbsp;
+
+                    {manifest.bottomCopper ?? "-"}
+
+                    </div>
+
+                    <br/>
+
+                    <div>
+
+                    🟣 Top Silk
+
+                    <br/>
+
+                    &nbsp;&nbsp;
+
+                    {manifest.topSilk ?? "-"}
+
+                    </div>
+
+                    <br/>
+
+                    <div>
+
+                    🟣 Bottom Silk
+
+                    <br/>
+
+                    &nbsp;&nbsp;
+
+                    {manifest.bottomSilk ?? "-"}
+
+                    </div>
+
+                    <br/>
+
+                    <div>
+
+                    🟢 Top Mask
+
+                    <br/>
+
+                    &nbsp;&nbsp;
+
+                    {manifest.topMask ?? "-"}
+
+                    </div>
+
+                    <br/>
+
+                    <div>
+
+                    🟢 Bottom Mask
+
+                    <br/>
+
+                    &nbsp;&nbsp;
+
+                    {manifest.bottomMask ?? "-"}
+
+                    </div>
+
+                    <br/>
+
+                    <div>
+
+                    ⚪ Edge Cuts
+
+                    <br/>
+
+                    &nbsp;&nbsp;
+
+                    {manifest.edgeCuts ?? "-"}
+
+                    </div>
+
+                    <br/>
+
+                    <div>
+
+                    🟠 Drill
+
+                    <br/>
+
+                    &nbsp;&nbsp;
+
+                    {manifest.drill ?? "-"}
+
+                    </div>
+
                     </div>
                 </div>
 
